@@ -28,4 +28,47 @@ let st=document.createElement('style');st.textContent='.time-stats{display:flex;
 .tabs{position:relative;padding-top:28px}.tabs:before{content:'DASHBOARD POR MÁQUINA';position:absolute;top:0;left:2px;color:#a9d5b5;font-size:11px;letter-spacing:.13em;font-weight:800}.tab{background:linear-gradient(135deg,#182b20,#202b4b 58%,#382344);box-shadow:inset 0 1px #ffffff14,0 7px 18px #0003}.tab.active{background:linear-gradient(135deg,#b5e7c2,#6db6a0 52%,#716fe4);color:#101a16;box-shadow:0 0 22px #8fe7bb66}.chart{background:linear-gradient(135deg,#123a32 0%,#17334d 48%,#42264e 100%)!important}.time-line{filter:drop-shadow(0 0 6px #62e0ac)}
 </style><style>
 @media(max-width:600px){body{background:radial-gradient(circle at 90% 0,#244936 0,#101713 38%),linear-gradient(160deg,#101713,#182b24 70%,#241c35)}.panel{background:linear-gradient(145deg,#233d2e 0%,#172a22 48%,#20223f 100%);border-color:#456453}.tab{background:linear-gradient(135deg,#172b21,#1c2944 58%,#382445);border-color:#456453;color:#c4d5c9}.tab.active{background:linear-gradient(135deg,#b8e6c4,#69ad8b 52%,#6968d9)!important;color:#101a16!important}.machine-head .status.running{background:linear-gradient(135deg,#24a957,#116331)!important;color:#d8ffe3!important;box-shadow:0 0 0 3px #4ee18e30,0 0 24px #4ee18e!important;animation:greenPulseMobile .85s ease-in-out infinite!important}.machine-head .status.stopped{background:linear-gradient(135deg,#c34545,#642121)!important;color:#ffe2e2!important;box-shadow:0 0 0 3px #ff696930,0 0 24px #ff6969!important;animation:redPulseMobile .85s ease-in-out infinite!important}.actions .btn{background:linear-gradient(135deg,#233e30,#1b2d3c);border-color:#4b6959}.actions .produce{color:#8affb4}.chart{background:linear-gradient(135deg,#0e3f34 0%,#123c58 52%,#4b2857 100%)!important}@keyframes greenPulseMobile{50%{box-shadow:0 0 0 8px #4ee18e26,0 0 30px #4ee18e!important;filter:brightness(1.16)}}@keyframes redPulseMobile{50%{box-shadow:0 0 0 8px #ff696926,0 0 30px #ff6969!important;filter:brightness(1.16)}}}
-</style></body></html>
+</style><script>
+(()=>{
+  const oldOpenIssue=openIssue;
+  const oldSaveIssue=saveIssue;
+  openIssue=function(){
+    const id=crypto.randomUUID(),time=now();
+    d.events.push({id,m:selected,kind:'Avaria / quebra',time,reason:'Avaria / quebra registada pelo botão',end:null,pending:true});
+    d.m[selected].s='Parada';
+    localStorage.setItem(KEY,JSON.stringify(d));
+    render();
+    oldOpenIssue();
+    document.getElementById('reason').value='Avaria / quebra registada pelo botão';
+    document.getElementById('issueModal').dataset.pending=id;
+  };
+  saveIssue=function(){
+    const id=document.getElementById('issueModal').dataset.pending;
+    const event=d.events.find(e=>e.id===id);
+    const kind=document.getElementById('type').value;
+    const reason=document.getElementById('reason').value.trim();
+    if(!reason)return alert('Descreva o ocorrido.');
+    if(event){event.kind=kind;event.reason=reason;event.pending=false}
+    else d.events.push({id:crypto.randomUUID(),m:selected,kind,time:now(),reason,end:null});
+    d.m[selected].s=kind==='Setup'?'Setup':'Parada';
+    closeModal('issueModal');
+    save();
+  };
+})();
+</script><script>
+document.addEventListener('click',function(event){
+  const button=event.target.closest('.actions .stop');
+  if(!button)return;
+  setTimeout(function(){
+    const recent=d.events.find(e=>e.m===selected&&e.kind==='Avaria / quebra'&&Date.now()-new Date(e.time).getTime()<3000);
+    if(recent)return;
+    const id=crypto.randomUUID(),time=now();
+    d.events.push({id,m:selected,kind:'Avaria / quebra',time,reason:'Avaria / quebra registada pelo botão',end:null,pending:true});
+    d.m[selected].s='Parada';
+    localStorage.setItem(KEY,JSON.stringify(d));
+    render();
+    const modal=document.getElementById('issueModal');
+    if(modal){modal.dataset.pending=id;document.getElementById('reason').value='Avaria / quebra registada pelo botão'}
+  },0);
+});
+</script></body></html>
